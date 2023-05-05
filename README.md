@@ -12,3 +12,6 @@ accelerate launch --num_cpu_threads_per_process=2 .\train_network_yf.py  --enabl
 
 
 或者使用powershell运行 train.ps1
+
+
+生图的配置位于 config.ini, 自行修改即可
