@@ -13,7 +13,7 @@ new_lines = ['import sys\nimport os\nimport train_preview\nsd_scripts_root_path 
 for line in lines:
     new_lines.append(line)
     if 'unwrapped_nw.save_weights' in line:
-        new_lines.append('        train_preview.on_train_finish(ckpt_file)\n')
+        new_lines.append('        train_preview.on_train_finish(ckpt_file, epoch_no, force_sync_upload)\n')
 
 with open('./train_network_yf.py', 'w', encoding='utf-8') as f:
     f.writelines(new_lines)

@@ -543,7 +543,7 @@ def train(args):
         metadata["ss_epoch"] = str(epoch_no)
 
         unwrapped_nw.save_weights(ckpt_file, save_dtype, minimum_metadata if args.no_metadata else metadata)
-        train_preview.on_train_finish(ckpt_file)
+        train_preview.on_train_finish(ckpt_file, epoch_no, force_sync_upload)
         if args.huggingface_repo_id is not None:
             huggingface_util.upload(args, ckpt_file, "/" + ckpt_name, force_sync_upload=force_sync_upload)
 
