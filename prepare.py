@@ -9,7 +9,7 @@ with open(file_path, 'r', encoding='utf-8') as f:
     lines = f.readlines()
 
 
-new_lines = ['import sys\nimport os\nimport train_preview\nsd_scripts_root_path =  os.path.join( os.path.abspath(os.path.dirname(os.path.dirname(__file__))), "sd-scripts" )\nsys.path.append(sd_scripts_root_path)\n']
+new_lines = ['import train_preview\n']
 for line in lines:
     new_lines.append(line)
     if 'unwrapped_nw.save_weights' in line:

@@ -1,8 +1,5 @@
-import sys
-import os
+
 import train_preview
-sd_scripts_root_path =  os.path.join( os.path.abspath(os.path.dirname(os.path.dirname(__file__))), "sd-scripts" )
-sys.path.append(sd_scripts_root_path)
 import importlib
 import argparse
 import gc

@@ -1,44 +1,32 @@
 
-
-import configparser
+import config
 import os
 import subprocess
 
 from PIL import Image
 
-import tempfile
-
-class MyParser(configparser.ConfigParser):
-    def as_dict(self):
-        d = dict(self._sections)
-        for k in d:
-            d[k] = dict(d[k])
-        return d
-def get_config(config_path: str):
-    config = MyParser()
-    config.read(config_path, encoding='utf-8')
-    return config.as_dict()
 
 
 def on_train_finish(path, epoch_no, force_sync_upload):
     print("on train finished", path)
+    config_data = config.config_data
     lora_dir = os.path.abspath(os.path.dirname(path))
     lora_name = os.path.splitext( os.path.basename(path))[0]
-    weights = str.split(config['preview']['lora_weights'], ",")
-    sampler_name = config['preview']['sampler_name']
-    steps = config['preview']['steps']
-    width = config['preview']['width']
-    height = config['preview']['height']
-    seed = config['preview']['seed']
-    model = config['preview']['model']
+    weights = str.split(config_data['preview']['lora_weights'], ",")
+    sampler_name = config_data['preview']['sampler_name']
+    steps = config_data['preview']['steps']
+    width = config_data['preview']['width']
+    height = config_data['preview']['height']
+    seed = config_data['preview']['seed']
+    model = config_data['preview']['model']
     prompts = []
     outputs = []
     for weight in weights:
-        p = '"' + config['preview']['prompt'] + ' <lora:' + lora_name + ':' + weight + '>' + '"'
-        png_path = os.path.join(temp_dir, lora_name + '_' + weight + '.png')
+        p = '"' + config_data['preview']['prompt'] + ' <lora:' + lora_name + ':' + weight + '>' + '"'
+        png_path = os.path.join(config.temp_dir, lora_name + '_' + weight + '.png')
         prompts.append(p)
         outputs.append(png_path)
-    cmd = [sd_python_path, txt2image_path,  "--lora_dir", lora_dir, "--output", *outputs, "--prompt", *prompts, "--sampler_name", sampler_name,
+    cmd = [config.sd_python_path, config.txt2image_path,  "--lora_dir", lora_dir, "--output", *outputs, "--prompt", *prompts, "--sampler_name", sampler_name,
            "--width", width, "--height", height,"--steps", steps,"--seed", seed, "--model", model]
 
 
@@ -52,7 +40,7 @@ def on_train_finish(path, epoch_no, force_sync_upload):
             image = Image.open(path)
             images.append(image)
 
-        png_path = os.path.join(config['preview']['savefolder'], lora_name + '.png')
+        png_path = os.path.join(config_data['path']['png_savefolder'], lora_name + '.png')
         merged_image = merge_images(images)
         merged_image.save(png_path, format="PNG")
         print("saved png ", png_path)
@@ -78,11 +66,5 @@ def merge_images( img_array, direction="horizontal", gap=0):
         raise ValueError("The direction parameter has only two options: horizontal and vertical")
     return result
 
-config_file =  os.path.join( os.path.abspath(os.path.dirname(__file__)), "config.ini" )
-config = get_config(config_file)
 
-parent_dir_path = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-sd_python_path = os.path.join(parent_dir_path, 'stable-diffusion-webui', "venv/Scripts/python.exe")
-txt2image_path = os.path.join(os.path.dirname(__file__), 'txt2image.py')
-temp_dir = tempfile.gettempdir()
 
