@@ -40,7 +40,7 @@ def on_train_finish(path, epoch_no, force_sync_upload):
             image = Image.open(path)
             images.append(image)
 
-        png_path = os.path.join(config_data['path']['png_savefolder'], lora_name + '.png')
+        png_path = os.path.join(config_data['path']['png_save_path'], lora_name + '.png')
         merged_image = merge_images(images)
         merged_image.save(png_path, format="PNG")
         print("saved png ", png_path)

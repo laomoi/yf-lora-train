@@ -19,7 +19,7 @@ args,remaining = parser.parse_known_args()
 sys.argv[1:] = remaining
 
 
-from yfcore import webui_lib
+import webui_lib
 
 
 
@@ -33,8 +33,20 @@ def start():
 
     model_list = webui_lib.get_checkpoint_list()
     print("available models:")
+    found_model = False
     for m in model_list:
         print(m)
+        if m == args.model:
+            found_model = True
+            break
+    if not found_model:
+        for m in model_list:
+            if m.startswith(args.model):
+                print("find matched model", m)
+                webui_lib.reload_model(m)
+                break
+
+
     print("prompts", args.prompt)
     steps = int(args.steps)
     sampler_name = args.sampler_name
