@@ -1,5 +1,6 @@
 import os
-sd_scripts_root_path =  os.path.join( os.path.abspath(os.path.dirname(os.path.dirname(__file__))), "sd-scripts" )
+import config
+sd_scripts_root_path =  config.sd_scripts_root_path
 
 file_path = os.path.join(sd_scripts_root_path, "train_network.py")
 if not os.path.isfile(file_path):
