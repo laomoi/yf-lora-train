@@ -12,23 +12,30 @@ def on_train_finish(path, epoch_no, force_sync_upload):
     config_data = config.config_data
     lora_dir = os.path.abspath(os.path.dirname(path))
     lora_name = os.path.splitext( os.path.basename(path))[0]
-    weights = str.split(config_data['preview']['lora_weights'], ",")
-    sampler_name = config_data['preview']['sampler_name']
-    steps = config_data['preview']['steps']
-    width = config_data['preview']['width']
-    height = config_data['preview']['height']
-    seed = config_data['preview']['seed']
-    model = config_data['preview']['model']
+
+    for section in config_data:
+        if section != "path":
+            generate_png_for_section(lora_name, lora_dir, section, config_data[section])
+
+
+def generate_png_for_section(lora_name, lora_dir, section, config_section):
+    weights = str.split(config_section['lora_weights'], ",")
+    sampler_name = config_section['sampler_name']
+    steps = config_section['steps']
+    width = config_section['width']
+    height = config_section['height']
+    seed = config_section['seed']
+    model = config_section['model']
     prompts = []
     outputs = []
     for weight in weights:
-        p = '"' + config_data['preview']['prompt'] + ' <lora:' + lora_name + ':' + weight + '>' + '"'
-        png_path = os.path.join(config.temp_dir, lora_name + '_' + weight + '.png')
+        p = '"' + config_section['prompt'] + ' <lora:' + lora_name + ':' + weight + '>' + '"'
+        png_path = os.path.join(config.temp_dir, lora_name + '_' + section + "_" + weight + '.png')
         prompts.append(p)
         outputs.append(png_path)
-    cmd = [config.sd_python_path, config.txt2image_path,  "--lora_dir", lora_dir, "--output", *outputs, "--prompt", *prompts, "--sampler_name", sampler_name,
-           "--width", width, "--height", height,"--steps", steps,"--seed", seed, "--model", model]
-
+    cmd = [config.sd_python_path, config.txt2image_path, "--lora_dir", lora_dir, "--output", *outputs, "--prompt",
+           *prompts, "--sampler_name", sampler_name,
+           "--width", width, "--height", height, "--steps", steps, "--seed", seed, "--model", model]
 
     print(cmd)
     result = subprocess.run(cmd, encoding='utf-8')
@@ -40,16 +47,17 @@ def on_train_finish(path, epoch_no, force_sync_upload):
             image = Image.open(path)
             images.append(image)
 
-        png_path = os.path.join(config_data['path']['png_save_path'], lora_name + '.png')
+        png_path = os.path.join(config.config_data['path']['png_save_path'], lora_name + '_' + section + '.png')
         merged_image = merge_images(images)
         merged_image.save(png_path, format="PNG")
         print("saved png ", png_path)
+
         for temp in outputs:
             os.remove(temp)
-        return
+        return True
 
     print("generate png failed")
-
+    return False
 
 def merge_images( img_array, direction="horizontal", gap=0):
     img_array = [img for img in img_array]
