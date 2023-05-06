@@ -34,4 +34,6 @@ else:
     sd_python_path = config_data['path']['sd_python_path']
 
 txt2image_path = os.path.join(os.path.dirname(__file__), 'txt2image.py')
+batch_txt2image_path = os.path.join(os.path.dirname(__file__), 'batch_txt2image.py')
+
 temp_dir = tempfile.gettempdir()

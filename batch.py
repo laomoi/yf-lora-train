@@ -17,6 +17,5 @@ for root, dirs, files in os.walk(path):
         # 将符合条件的文件路径添加到列表中
         file_paths.append(file_path)
 
-for path in file_paths:
-    train_preview.on_train_finish(path, 0 , False)
+train_preview.on_train_batch_finish(file_paths, path)
 
