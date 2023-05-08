@@ -10,11 +10,22 @@ with open(file_path, 'r', encoding='utf-8') as f:
     lines = f.readlines()
 
 
+
+
 new_lines = ['import train_preview\n']
+
+
 for line in lines:
     new_lines.append(line)
+    # new version of train_network.py
     if 'unwrapped_nw.save_weights' in line:
         new_lines.append('        train_preview.on_train_finish(ckpt_file, epoch_no, force_sync_upload)\n')
+    # old version of train_network.py
+    if 'network.save_weights' in line:
+        new_lines.append('        train_preview.on_train_finish(ckpt_file, 0, True)\n')
+    if 'unwrap_model(network).save_weights' in line:
+        new_lines.append('                train_preview.on_train_finish(ckpt_file, 0, True)\n')
+
 
 with open('./train_network_yf.py', 'w', encoding='utf-8') as f:
     f.writelines(new_lines)
