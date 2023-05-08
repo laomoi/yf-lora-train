@@ -8,6 +8,8 @@ import argparse
 parser = argparse.ArgumentParser(description='txt2_image desc')
 parser.add_argument('--batch',   default="")
 parser.add_argument('--lora_dir',  default="")
+parser.add_argument('--list_lora_dir',  default="1")
+parser.add_argument('--png_save_path',  default="./output")
 
 
 
@@ -18,6 +20,8 @@ sys.argv[1:] = remaining
 
 import webui_lib
 
+import os
+import fnmatch
 
 last_model = ""
 
@@ -30,8 +34,28 @@ def start():
 
     batch = json.loads(args.batch)
 
-    for task in batch:
-        do_task(task)
+    if args.list_lora_dir == "0":
+        #task.lora_name is confirmed
+        for task in batch:
+            do_task(task)
+    else:
+        # task.lora_name need to be listed
+        ext = "safetensors"  # 扩展名
+        path_list = []
+        # 枚举目录下的所有文件和子目录
+        for root, dirs, files in os.walk(args.lora_dir):
+            # 遍历文件
+            for filename in fnmatch.filter(files, f"*.{ext}"):
+                file_path = os.path.join(root, filename)
+                # 将符合条件的文件路径添加到列表中
+                path_list.append(file_path)
+        for path in path_list:
+            lora_name = os.path.splitext(os.path.basename(path))[0]
+            for task in batch:
+                task['lora_name'] = lora_name
+                do_task(task)
+
+
 
 
 
@@ -40,13 +64,18 @@ def do_task(task):
     global  last_model
     model_list = webui_lib.get_checkpoint_list()
     model = task['model']
-    png_path = task['png_path']
+    # png_path = task['png_path']
     steps = int(task['steps'])
     sampler_name = task['sampler_name']
     seed = int(task['seed'])
     width = int(task['width'])
     height = int(task['height'])
-    prompts = task['prompts']
+    prompt = task['prompt']
+    weights = task['weights']
+    lora_name = task['lora_name']
+    section = task['section']
+
+    # prompts = task['prompts']
     # reload model
     if last_model != model:
         found_model = False
@@ -62,12 +91,16 @@ def do_task(task):
                     last_model = m
                     break
     to_merge_imgs = []
-    for p in prompts:
+
+    for weight in weights:
+        p = '"' + prompt + ' <lora:' + lora_name + ':' + weight + '>' + '"'
         images = webui_lib.txt2img(
             {'prompt': p, 'sampler_name': sampler_name, 'seed': seed, 'width': width, 'height': height,
              'steps': steps})
         if images and len(images) > 0:
             to_merge_imgs.append((images[0]))
+    png_path = os.path.join(args.png_save_path, lora_name + '_' + section + '.png')
+
     print("merging...", png_path)
     merged_image = merge_images(to_merge_imgs)
     merged_image.save(png_path, format="PNG")
@@ -86,6 +119,7 @@ def merge_images( img_array, direction="horizontal", gap=0):
     else:
         raise ValueError("The direction parameter has only two options: horizontal and vertical")
     return result
+
 
 
 start()
