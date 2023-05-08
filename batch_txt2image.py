@@ -30,7 +30,7 @@ def start():
         webui_lib.set_lora_dir(args.lora_dir)
 
     webui_lib.initialize()
-
+    gc.collect()
 
     batch = json.loads(args.batch)
 
