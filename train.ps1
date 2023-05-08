@@ -52,7 +52,7 @@ $conv_alpha = 4 # conv alpha | 类似于 network_alpha，可以采用与 conv_di
 
 # ============= DO NOT MODIFY CONTENTS BELOW | 请勿修改下方内容 =====================
 # Activate python venv
-..\sd-scripts\venv\Scripts\activate
+..\lora-scripts\venv\Scripts\activate
 
 $Env:HF_HOME = "huggingface"
 $ext_args = [System.Collections.ArrayList]::new()
