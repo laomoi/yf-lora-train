@@ -19,7 +19,7 @@ sys.argv[1:] = remaining
 
 
 import webui_lib
-
+import gc
 import os
 import fnmatch
 
@@ -105,6 +105,8 @@ def do_task(task):
     merged_image = merge_images(to_merge_imgs)
     merged_image.save(png_path, format="PNG")
     print("saved png ", png_path)
+
+    gc.collect()
 def merge_images( img_array, direction="horizontal", gap=0):
     img_array = [img for img in img_array]
     w, h = img_array[0].size
