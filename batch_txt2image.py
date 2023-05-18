@@ -81,7 +81,6 @@ def do_task(task):
     section = task['section']
 
     negative_prompt = task['negative_prompt']
-    mode = task['mode']
     img_src = task['img_src']
     guidance_start = task['guidance_start']
     guidance_end = task['guidance_end']
@@ -94,6 +93,7 @@ def do_task(task):
     default_lora_weight = task['default_lora_weight']
     canny_threshold_a = task['canny_threshold_a']
     canny_threshold_b = task['canny_threshold_b']
+    canny_model = task['canny_model']
 
 
 
@@ -125,7 +125,7 @@ def do_task(task):
     }
 
     if canny_img_src != "":
-        controlnet_params = make_controlnet_params(canny_weight, guidance_start, guidance_end, canny_img_src, pre_res,canny_threshold_a,canny_threshold_b)
+        controlnet_params = make_controlnet_params(canny_model, canny_weight, guidance_start, guidance_end, canny_img_src, pre_res,canny_threshold_a,canny_threshold_b)
     else:
         controlnet_params = []
 
@@ -172,23 +172,26 @@ def merge_images( img_array, direction="horizontal", gap=0):
         raise ValueError("The direction parameter has only two options: horizontal and vertical")
     return result
 
-def make_controlnet_params(canny_weight, guidance_start, guidance_end, canny_img_src, pre_res,canny_threshold_a,canny_threshold_b):
+def make_controlnet_params(canny_model, canny_weight, guidance_start, guidance_end, canny_img_src, pre_res,canny_threshold_a,canny_threshold_b):
     png = Image.open(canny_img_src)
     mask = Image.new("RGB", (png.width, png.height), (0, 0, 0, 255))
+    canny_model_name = webui_lib.get_cn_model_name(canny_model)
+    if canny_model_name is None:
+        print("canny_model_name is None!!")
     controlnet_params = [
         {
             'enabled': True,
             'module': 'canny',
-            'model': 'control_canny [9d312881]',
-            'weight': canny_weight,
+            'model': canny_model_name,
+            'weight': float(canny_weight),
             'image': {'image': np.array(png), 'mask':np.array(mask)},
             'scribble_mode': False,
             'resize_mode': "Scale to Fit (Inner Fit)",
             'rgbbgr_mode': False,
             'lowvram': False,
-            'pres': pre_res,
-            'pthr_a': canny_threshold_a,
-            'pthr_b': canny_threshold_b,
+            'pres': int(pre_res),
+            'pthr_a': int(canny_threshold_a),
+            'pthr_b': int(canny_threshold_b),
             'guidance_start': float(guidance_start),
             'guidance_end': float(guidance_end),
             'guess_mode': False

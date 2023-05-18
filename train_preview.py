@@ -42,7 +42,6 @@ def on_train_batch_finish(lora_dir):
     run_task(txt2image_tasks, lora_dir, "1")
 
 
-# mode=txt2img; txt2img img2img
 # model_lora_name=
 # grid=lora_weights; lora_weights denoising_strength
 # lora_weights=0,0.2,0.6,0.8,1.0
@@ -76,7 +75,6 @@ def add_section_task(txt2image_tasks, lora_name,  section, config_section):
     prompt = config_section['prompt']
 
     negative_prompt = config_section['negative_prompt']
-    mode = config_section['mode']
     model_lora_name = config_section['model_lora_name']
     img_src = config_section['img_src']
     guidance_start = config_section['guidance_start']
@@ -91,6 +89,7 @@ def add_section_task(txt2image_tasks, lora_name,  section, config_section):
 
     canny_threshold_a = config_section['canny_threshold_a']
     canny_threshold_b = config_section['canny_threshold_b']
+    canny_model = config_section['canny_model']
 
 
 
@@ -118,7 +117,6 @@ def add_section_task(txt2image_tasks, lora_name,  section, config_section):
         # 'model_lora_name': model_lora_name,
 
         'negative_prompt':negative_prompt,
-        'mode': mode,
         'img_src': img_src,
         'guidance_start': guidance_start,
         'guidance_end': guidance_end,
@@ -131,6 +129,7 @@ def add_section_task(txt2image_tasks, lora_name,  section, config_section):
         'default_lora_weight': default_lora_weight,
         'canny_threshold_a':canny_threshold_a,
         'canny_threshold_b':canny_threshold_b,
+        'canny_model':canny_model,
     })
 
 
