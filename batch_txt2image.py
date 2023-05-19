@@ -82,17 +82,17 @@ def do_task(task):
 
     negative_prompt = task['negative_prompt']
     img_src = task['img_src']
-    guidance_start = task['guidance_start']
-    guidance_end = task['guidance_end']
-    canny_weight = task['canny_weight']
+    guidance_start = float(task['guidance_start'])
+    guidance_end = float(task['guidance_end'])
+    canny_weight = float(task['canny_weight'])
     canny_img_src = task['canny_img_src']
-    pre_res = task['pre_res']
+    pre_res = int(task['pre_res'])
     denoising_strength = task['denoising_strength']
-    default_denoising_strength = task['default_denoising_strength']
+    default_denoising_strength = float(task['default_denoising_strength'])
     grid = task['grid']
-    default_lora_weight = task['default_lora_weight']
-    canny_threshold_a = task['canny_threshold_a']
-    canny_threshold_b = task['canny_threshold_b']
+    default_lora_weight = float(task['default_lora_weight'])
+    canny_threshold_a = float(task['canny_threshold_a'])
+    canny_threshold_b = float(task['canny_threshold_b'])
     canny_model = task['canny_model']
 
 
@@ -119,7 +119,8 @@ def do_task(task):
     params = {
          'prompt': prompt,
          'negative_prompt':negative_prompt,
-         'sampler_name': sampler_name, 'seed': seed, 'width': width, 'height': height,
+         'sampler_name': sampler_name,
+         'seed': seed, 'width': width, 'height': height,
          'steps': steps,
          'denoising_strength':default_denoising_strength,
     }
@@ -129,22 +130,37 @@ def do_task(task):
     else:
         controlnet_params = []
 
+    if img_src is not None and img_src != "":
+        is_img2img = True
+        init_images = [Image.open(img_src)]
+        params['init_images'] = init_images
+    else:
+        is_img2img = False
 
+    #if is_img2img == false, force grid = lora_weights
+    if is_img2img == False:
+        grid = 'lora_weights'
 
     if grid == "lora_weights":
         for weight in lora_weights:
             params['prompt'] = '"' + prompt + ' <lora:' + lora_name + ':' + weight + '>' + '"'
             params['denoising_strength'] = default_denoising_strength
-            images = webui_lib.txt2img(params, None, None, controlnet_params)
+            if img_src is not None and img_src != "":
+                images = webui_lib.img2img(params, None, None, controlnet_params)
+            else:
+                images = webui_lib.txt2img(params, None, None, controlnet_params)
             if images and len(images) > 0:
                 to_merge_imgs.append((images[0]))
     else:
         weight = default_lora_weight
         for strength in denoising_strength:
-            params['prompt'] = '"' + prompt + ' <lora:' + lora_name + ':' + weight + '>' + '"'
-            params['denoising_strength'] = strength
+            params['prompt'] = '"' + prompt + ' <lora:' + lora_name + ':' + str(weight) + '>' + '"'
+            params['denoising_strength'] = float(strength)
 
-            images = webui_lib.txt2img(params, None, None, controlnet_params)
+            if img_src is not None and img_src != "":
+                images = webui_lib.img2img(params, None, None, controlnet_params)
+            else:
+                images = webui_lib.txt2img(params, None, None, controlnet_params)
             if images and len(images) > 0:
                 to_merge_imgs.append((images[0]))
 
@@ -175,25 +191,33 @@ def merge_images( img_array, direction="horizontal", gap=0):
 def make_controlnet_params(canny_model, canny_weight, guidance_start, guidance_end, canny_img_src, pre_res,canny_threshold_a,canny_threshold_b):
     png = Image.open(canny_img_src)
     mask = Image.new("RGB", (png.width, png.height), (0, 0, 0, 255))
-    canny_model_name = webui_lib.get_cn_model_name(canny_model)
+
+    search_canny_model_name_list = [canny_model, 'control_sd15_canny', 'control_canny']
+    for try_name in search_canny_model_name_list:
+        if try_name != "":
+            canny_model_name = webui_lib.get_cn_model_name(try_name)
+            if canny_model_name is not None:
+                break
+
     if canny_model_name is None:
-        print("canny_model_name is None!!")
+        print("canny_model_name is None!! " )
+
     controlnet_params = [
         {
             'enabled': True,
             'module': 'canny',
             'model': canny_model_name,
-            'weight': float(canny_weight),
+            'weight': canny_weight,
             'image': {'image': np.array(png), 'mask':np.array(mask)},
             'scribble_mode': False,
             'resize_mode': "Scale to Fit (Inner Fit)",
             'rgbbgr_mode': False,
             'lowvram': False,
-            'pres': int(pre_res),
-            'pthr_a': int(canny_threshold_a),
-            'pthr_b': int(canny_threshold_b),
-            'guidance_start': float(guidance_start),
-            'guidance_end': float(guidance_end),
+            'pres': pre_res,
+            'pthr_a': canny_threshold_a,
+            'pthr_b': canny_threshold_b,
+            'guidance_start': guidance_start,
+            'guidance_end': guidance_end,
             'guess_mode': False
         }
     ]

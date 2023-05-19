@@ -82,7 +82,7 @@ def add_section_task(txt2image_tasks, lora_name,  section, config_section):
     canny_weight = config_section['canny_weight']
     canny_img_src = config_section['canny_img_src']
     pre_res = config_section['pre_res']
-    denoising_strength = config_section['denoising_strength']
+    denoising_strength = str.split(config_section['denoising_strength'], ",")
     default_denoising_strength = config_section['default_denoising_strength']
     grid = config_section['grid']
     default_lora_weight = config_section['default_lora_weight']
