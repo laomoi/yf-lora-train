@@ -1,3 +1,4 @@
+import random
 import sys
 import os
 import json
@@ -66,6 +67,12 @@ def start():
 
     # webui_lib.reload_model("3Guofeng3_v33.safetensors [4078eb4174]")
 def do_task(task):
+    loop = int(task.get('loop', 1))
+    for i in range(loop):
+        do_inner_task(task, i+1)
+
+
+def do_inner_task(task, loop_index):
     global  last_model
     model_list = webui_lib.get_checkpoint_list()
     model = task['model']
@@ -96,6 +103,9 @@ def do_task(task):
     canny_model = task['canny_model']
 
 
+    if seed == -1:
+        seed = random.randint(1, sys.maxsize)
+    print("use seed=", str(seed))
 
 
     # prompts = task['prompts']
@@ -165,7 +175,7 @@ def do_task(task):
                 to_merge_imgs.append((images[0]))
 
 
-    png_path = os.path.join(args.png_save_path, lora_name + '_' + section + '.png')
+    png_path = os.path.join(args.png_save_path, lora_name + '_' + section + '_' + str(loop_index) + '.png')
 
     print("merging...", png_path)
     merged_image = merge_images(to_merge_imgs)
@@ -192,7 +202,7 @@ def make_controlnet_params(canny_model, canny_weight, guidance_start, guidance_e
     png = Image.open(canny_img_src)
     mask = Image.new("RGB", (png.width, png.height), (0, 0, 0, 255))
 
-    search_canny_model_name_list = [canny_model, 'control_sd15_canny', 'control_canny']
+    search_canny_model_name_list = [canny_model, 'control_v11p_sd15_canny', 'control_sd15_canny', 'control_canny']
     for try_name in search_canny_model_name_list:
         if try_name != "":
             canny_model_name = webui_lib.get_cn_model_name(try_name)
@@ -204,23 +214,27 @@ def make_controlnet_params(canny_model, canny_weight, guidance_start, guidance_e
 
     controlnet_params = [
         {
-            'enabled': True,
-            'module': 'canny',
-            'model': canny_model_name,
-            'weight': canny_weight,
-            'image': {'image': np.array(png), 'mask':np.array(mask)},
-            'scribble_mode': False,
-            'resize_mode': "Scale to Fit (Inner Fit)",
-            'rgbbgr_mode': False,
-            'lowvram': False,
-            'pres': pre_res,
-            'pthr_a': canny_threshold_a,
-            'pthr_b': canny_threshold_b,
-            'guidance_start': guidance_start,
-            'guidance_end': guidance_end,
-            'guess_mode': False
+                 'enabled': True,
+                'image': {'image': np.array(png), 'mask':np.array(mask)},
+                'lowvram': False,
+                'model':  canny_model_name,
+                'module': 'canny',
+                'processor_res': pre_res,
+                'resize_mode': 'Crop and Resize',
+                'threshold_a': canny_threshold_a,
+                'threshold_b': canny_threshold_b,
+                'weight': canny_weight,
+                'control_mode': 'Balanced',
+                'pixel_perfect': False,
+                'loopback': False,
+                'batch_image':"",
+                'guidance_start': guidance_start,
+                'guidance_end': guidance_end,
         }
     ]
+    
+    
+   
     return controlnet_params
 
 start()

@@ -91,6 +91,7 @@ def add_section_task(txt2image_tasks, lora_name,  section, config_section):
     canny_threshold_b = config_section['canny_threshold_b']
     canny_model = config_section['canny_model']
 
+    loop = config_section['loop']
 
 
     if lora_name == "" and model_lora_name != "":
@@ -130,6 +131,7 @@ def add_section_task(txt2image_tasks, lora_name,  section, config_section):
         'canny_threshold_a':canny_threshold_a,
         'canny_threshold_b':canny_threshold_b,
         'canny_model':canny_model,
+        'loop':loop,
     })
 
 
